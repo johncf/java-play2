@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Java Playground</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      box-sizing: border-box;
+      min-width: 720px;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      margin: 0;
+    }
+
+    section#header {
+      background-color: #ace;
+      padding: 8px;
+    }
+
+    section#content {
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #left,
+    #right {
+      box-sizing: border-box;
+      padding: 8px;
+    }
+
+    #left {
+      padding-right: 0;
+    }
+
+    #right {
+      padding-left: 0;
+    }
+
+    #editor,
+    #output,
+    #logs {
+      box-sizing: border-box;
+      border: 1px solid lightgray;
+      height: 100%;
+      margin: 0;
+    }
+
+    #output,
+    #logs {
+      width: 100%;
+      padding: 8px;
+    }
+
+    .hsplit,
+    .vsplit {
+      box-sizing: border-box;
+    }
+
+    .gutter {
+      background-color: transparent;
+      background-repeat: no-repeat;
+      background-position: 50%;
+    }
+
+    .gutter.gutter-vertical {
+      cursor: row-resize;
+    }
+
+    .gutter.gutter-horizontal {
+      cursor: col-resize;
+    }
+
+    .hsplit,
+    .gutter.gutter-horizontal {
+      height: 100%;
+      float: left;
+    }
+  </style>
+<script src="/js/socket.io.slim.js"></script>
+</head>
+
+<body>
+  <section id="header">
+    <button id="compile">Compile and Run</button>
+    <button id="kill">Stop</button>
+  </section>
+  <section id="content">
+    <div class="hsplit" id="left">
+      <pre id="editor"></pre>
+    </div>
+    <div class="hsplit" id="right">
+      <div class="vsplit" id="rtop">
+        <pre id="logs">Click "Compile and Run" when ready.</pre>
+      </div>
+      <div class="vsplit" id="rbot">
+        <pre id="output">Program output will show up here.</pre>
+      </div>
+    </div>
+  </section>
+  <script src="/js/ace/ace.js"></script>
+  <script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/tomorrow");
+    editor.session.setMode("ace/mode/java");
+    var showCode = "public class Test {\n}";
+    if (typeof(Storage) === "undefined") {
+      alert("The code you write will not be saved!");
+    } else if (localStorage.javaSource) {
+      showCode = localStorage.javaSource;
+    } else {
+      localStorage.javaSource = showCode;
+    }
+    editor.setValue(showCode, 1);
+
+    var log = document.getElementById("logs");
+    var out = document.getElementById("output");
+
+    var socket = io("/compiler");
+    socket.on('started', function(msg) {
+      log.innerText += "Compiling...\n";
+    });
+    socket.on('compiled', function(msg) {
+      if (msg.ecode == 0) {
+        log.innerText += "Compiled without errors";
+        if (msg.logs) {
+          log.innerText += ", with logs:\n";
+          log.innerText += msg.logs;
+        } else {
+          log.innerText += ".\n";
+        }
+        if (!msg.done) {
+          log.innerText += "Executing...\n";
+        }
+      } else {
+        log.innerText += "Compiler exited with code " + msg.ecode + ".\n";
+        log.innerText += msg.logs;
+      }
+    });
+    socket.on('stdout', function(msg) {
+      out.innerText += msg.data;
+    });
+    socket.on('stderr', function(msg) {
+      out.innerText += msg.data;
+    });
+    socket.on('done', function(msg) {
+      log.innerText += "Program exited with code " + msg.ecode + ".\n";
+    });
+
+    document.getElementById("compile").onclick = function() {
+      log.innerText = "";
+      out.innerText = "";
+      socket.emit('compile', editor.getValue());
+    }
+    document.getElementById("kill").onclick = function() {
+      log.innerText += "\nTrying to kill a running process...\n";
+      socket.emit('kill', null);
+    }
+    window.onbeforeunload = function(e) {
+      if (typeof(Storage) !== "undefined") {
+        localStorage.javaSource = editor.getValue();
+      }
+    }
+  </script>
+  <script src="/js/split.min.js"></script>
+  <script>
+    Split(['#left', '#right'], {
+      gutterSize: 8
+    })
+    Split(['#rtop', '#rbot'], {
+      direction: 'vertical',
+      gutterSize: 8
+    })
+  </script>
+</body>
+
+</html>
