@@ -55,6 +55,7 @@
     #logs {
       width: 100%;
       padding: 8px;
+      overflow: auto;
     }
 
     .hsplit,
@@ -158,7 +159,7 @@
       socket.emit('compile', editor.getValue());
     }
     document.getElementById("kill").onclick = function() {
-      log.innerText += "\nTrying to kill a running process...\n";
+      log.innerText += "Trying to kill a running process...\n";
       socket.emit('kill', null);
     }
     window.onbeforeunload = function(e) {
