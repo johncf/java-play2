@@ -23,6 +23,10 @@
       padding: 8px;
     }
 
+    #header button {
+      padding: 2px 8px;
+    }
+
     section#content {
       height: 100vh;
       overflow: hidden;
@@ -49,8 +53,16 @@
 
     #editor,
     #output,
-    #logs {
+    #logs,
+    #stdin {
+      font: 12px/normal Monaco, Consolas, monospace;
       box-sizing: border-box;
+      width: 100%;
+    }
+
+    #editor,
+    #output,
+    #logs {
       border: 1px solid lightgray;
       height: 100%;
       margin: 0;
@@ -58,15 +70,13 @@
 
     #output,
     #logs {
-      width: 100%;
-      padding: 8px;
+      padding: 4px;
       overflow: auto;
     }
 
     #stdin {
-      box-sizing: border-box;
       margin-top: 8px;
-      width: 100%;
+      padding: 4px;
     }
 
     .hsplit,
