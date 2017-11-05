@@ -88,8 +88,8 @@
 
 <body>
   <section id="header">
-    <button id="compile">Compile and Run</button>
-    <button id="kill">Stop</button>
+    <button id="compile">Compile & Run</button>
+    <button id="kill" disabled>Stop</button>
   </section>
   <section id="content">
     <div class="hsplit" id="left">
@@ -122,9 +122,13 @@
     var log = document.getElementById("logs");
     var out = document.getElementById("output");
 
+    var compile_button = document.getElementById("compile");
+    var kill_button = document.getElementById("kill");
+
     var socket = io("/compiler");
     socket.on('started', function(msg) {
       log.innerText += "Compiling...\n";
+      kill_button.disabled = false;
     });
     socket.on('compiled', function(msg) {
       if (msg.ecode == 0) {
@@ -151,16 +155,20 @@
     });
     socket.on('done', function(msg) {
       log.innerText += "Program exited with code " + msg.ecode + ".\n";
+      compile_button.disabled = false;
+      kill_button.disabled = true;
     });
 
-    document.getElementById("compile").onclick = function() {
+    compile_button.onclick = function() {
       log.innerText = "";
       out.innerText = "";
       socket.emit('compile', editor.getValue());
+      compile_button.disabled = true;
     }
-    document.getElementById("kill").onclick = function() {
-      log.innerText += "Trying to kill a running process...\n";
+    kill_button.onclick = function() {
+      log.innerText += "Trying to kill the running process...\n";
       socket.emit('kill', null);
+      kill_button.disabled = true;
     }
     window.onbeforeunload = function(e) {
       if (typeof(Storage) !== "undefined") {
