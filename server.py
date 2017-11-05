@@ -10,19 +10,22 @@ class Callbacks:
     def __init__(self, socketio, sid):
         self._sock = socketio
         self._sid = sid
-        self._sock.emit('started', {}, room=self._sid, namespace="/compiler")
+        self._emit('started', {})
+
+    def _emit(self, key, msg):
+        self._sock.emit(key, msg, room=self._sid, namespace="/compiler")
 
     def compiled(self, ecode, logs):
-        self._sock.emit('compiled', {'ecode': ecode, 'logs': logs.decode('utf-8')}, room=self._sid, namespace="/compiler")
+        self._emit('compiled', {'ecode': ecode, 'logs': logs.decode('utf-8')})
 
     def stdout(self, data):
-        self._sock.emit('stdout', {'data': data.decode('utf-8')}, room=self._sid, namespace="/compiler")
+        self._emit('stdout', {'data': data.decode('utf-8')})
 
     def stderr(self, text):
-        self._sock.emit('stderr', {'data': data.decode('utf-8')}, room=self._sid, namespace="/compiler")
+        self._emit('stderr', {'data': data.decode('utf-8')})
 
     def done(self, ecode):
-        self._sock.emit('done', {'ecode': ecode}, room=self._sid, namespace="/compiler")
+        self._emit('done', {'ecode': ecode})
 
 sid_program_map = {}
 
