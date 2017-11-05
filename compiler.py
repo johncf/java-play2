@@ -1,4 +1,4 @@
-from subprocess import Popen, PIPE, TimeoutExpired
+from subprocess import Popen, PIPE, STDOUT, TimeoutExpired
 from queue import Queue, Empty
 import os
 import re
@@ -58,15 +58,15 @@ class Program:
         self._cbs = callbacks
 
     def _compile(self):
-        proc = Popen(["javac", "-Xlint", self._name + ".java"], cwd=self._dir, stdout=PIPE, stderr=PIPE)
+        proc = Popen(["javac", "-Xlint", self._name + ".java"], cwd=self._dir, stdout=PIPE, stderr=STDOUT)
         try:
-            out, err = proc.communicate(timeout=5)
+            out, _ = proc.communicate(timeout=5)
             ecode = proc.returncode
         except TimeoutExpired:
             proc.kill()
-            out, err = proc.communicate()
+            out, _ = proc.communicate()
             ecode = None
-        return (ecode, out + err)
+        return (ecode, out)
 
     def _execute(self):
         return Popen(["java", self._name], cwd=self._dir, stdin=PIPE, stdout=PIPE, stderr=PIPE)
