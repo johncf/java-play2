@@ -117,7 +117,10 @@ def spawn(program):
                 else:
                     proc.stdin.write(data)
                     program._cbs.stdout(data)
-                    proc.stdin.flush()
+                    try:
+                        proc.stdin.flush()
+                    except OSError as e:
+                        print("== OSError:", e)
             elif key == 'stdout':
                 if data is not None:
                     program._cbs.stdout(data)
