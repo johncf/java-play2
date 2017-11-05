@@ -111,6 +111,7 @@
   <section id="header">
     <button id="compile">Compile &amp; Run</button>
     <button id="kill" disabled>Stop</button>
+    <button style="float: right" onclick="window.open('#!new')">New</button>
   </section>
   <section id="content">
     <div class="hsplit" id="left">
@@ -131,13 +132,15 @@
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/tomorrow");
     editor.session.setMode("ace/mode/java");
-    var showCode = "public class Test {\n}";
+    var showCode = "public class Test {\n    public static void main(String[] args) {\n    }\n}";
     if (typeof(Storage) === "undefined") {
       alert("The code you write will not be saved!");
     } else if (localStorage.javaSource) {
-      showCode = localStorage.javaSource;
-    } else {
-      localStorage.javaSource = showCode;
+      if (window.location.hash == "#!new") {
+        history.replaceState('', document.title, window.location.pathname);
+      } else {
+        showCode = localStorage.javaSource;
+      }
     }
     editor.setValue(showCode, 1);
 
