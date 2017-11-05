@@ -160,6 +160,7 @@
         log.innerText += msg.logs;
       }
       stdin_input.disabled = false;
+      stdin_input.focus();
     });
     socket.on('stdout', function(msg) {
       out.innerText += msg.data;
@@ -175,6 +176,7 @@
       compile_button.disabled = false;
       kill_button.disabled = true;
       stdin_input.disabled = true;
+      editor.focus();
     });
 
     compile_button.onclick = function(e) {
