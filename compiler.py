@@ -1,8 +1,8 @@
-from subprocess import Popen, PIPE, STDOUT, TimeoutExpired
-from queue import Queue, Empty
+from gevent.subprocess import Popen, PIPE, STDOUT, TimeoutExpired
+from gevent.queue import Queue, Empty
 import os
 import re
-import threading
+from gevent import Greenlet
 
 root_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "sessions")
 if not os.path.exists(root_dir):
@@ -72,7 +72,7 @@ class Program:
         return Popen(["java", self._name], cwd=self._dir, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
     def spawn_bg(self):
-        t = threading.Thread(target=spawn, args=(self,))
+        t = Greenlet(spawn, self)
         t.start()
         return t
 
@@ -89,9 +89,9 @@ def spawn(program):
         program._cbs.done(None)
         return
     proc = program._execute()
-    outt = threading.Thread(target=read2queue, args=('stdout', proc.stdout, program._queue))
+    outt = Greenlet(read2queue, 'stdout', proc.stdout, program._queue)
     outt.start()
-    errt = threading.Thread(target=read2queue, args=('stderr', proc.stderr, program._queue))
+    errt = Greenlet(read2queue, 'stderr', proc.stderr, program._queue)
     errt.start()
     done = False
     while True:
