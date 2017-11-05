@@ -21,7 +21,7 @@ class Callbacks:
     def stdout(self, data):
         self._emit('stdout', {'data': data.decode('utf-8')})
 
-    def stderr(self, text):
+    def stderr(self, data):
         self._emit('stderr', {'data': data.decode('utf-8')})
 
     def done(self, ecode):

@@ -12,7 +12,7 @@ class_pat = re.compile("^(public )?class (?P<name>\w+)", re.MULTILINE)
 dir_pat = re.compile("^[a-z0-9]+$")
 
 def extract_class_name(source):
-    m = class_pat.match(source)
+    m = class_pat.search(source)
     if m is not None:
         return m.group("name")
     else:
@@ -113,7 +113,7 @@ def spawn(program):
                 if data is None:
                     proc.stdin.close()
                 else:
-                    proc.stdin.write(data)
+                    proc.stdin.write(data.encode('utf-8'))
                     proc.stdin.flush()
             elif key == 'stdout':
                 if data is not None:
