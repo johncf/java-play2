@@ -24,6 +24,9 @@ class Callbacks:
     def stderr(self, data):
         self._emit('stderr', {'data': data.decode('utf-8')})
 
+    def stdin_ack(self, data):
+        self._emit('stdin_ack', {'data': data.decode('utf-8')})
+
     def done(self, ecode):
         self._emit('done', {'ecode': ecode})
 
@@ -53,7 +56,7 @@ def kill(data):
     sid = request.sid
     print("== stdin:", sid)
     if sid in sid_program_map:
-        sid_program_map[sid].stdin(data)
+        sid_program_map[sid].stdin(data.encode('utf-8'))
 
 @socketio.on('connect', namespace="/compiler")
 def connect():

@@ -50,7 +50,7 @@ def read2queue(key, stream, notifq, limit=2048):
 
 class Program:
     # callbacks must have the following methods:
-    #     compiled(ecode, logs), stdout(data), stderr(data), done(ecode)
+    #     compiled(ecode, logs), stdout(data), stderr(data), stdin_ack(data), done(ecode)
     def __init__(self, source, dirname, callbacks):
         if type(source) is not str and len(source) < 9:
             raise ValueError("source must be a non-empty string")
@@ -86,6 +86,8 @@ class Program:
         self._queue.put(("kill", None))
 
     def stdin(self, data):
+        if (type(data) != bytes):
+            raise TypeError("data must be bytes")
         self._queue.put(("stdin", data))
 
 def spawn(program):
@@ -113,7 +115,8 @@ def spawn(program):
                 if data is None:
                     proc.stdin.close()
                 else:
-                    proc.stdin.write(data.encode('utf-8'))
+                    proc.stdin.write(data)
+                    program._cbs.stdout(data)
                     proc.stdin.flush()
             elif key == 'stdout':
                 if data is not None:

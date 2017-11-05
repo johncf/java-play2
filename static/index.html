@@ -42,6 +42,11 @@
       padding-left: 0;
     }
 
+    #rbot {
+      display: flex;
+      flex-direction: column;
+    }
+
     #editor,
     #output,
     #logs {
@@ -56,6 +61,12 @@
       width: 100%;
       padding: 8px;
       overflow: auto;
+    }
+
+    #stdin {
+      box-sizing: border-box;
+      margin-top: 8px;
+      width: 100%;
     }
 
     .hsplit,
@@ -88,7 +99,7 @@
 
 <body>
   <section id="header">
-    <button id="compile">Compile & Run</button>
+    <button id="compile">Compile &amp; Run</button>
     <button id="kill" disabled>Stop</button>
   </section>
   <section id="content">
@@ -97,10 +108,11 @@
     </div>
     <div class="hsplit" id="right">
       <div class="vsplit" id="rtop">
-        <pre id="logs">Click "Compile and Run" when ready.</pre>
+        <pre id="logs">Click "Compile &amp; Run" when ready.</pre>
       </div>
       <div class="vsplit" id="rbot">
         <pre id="output">Program output will show up here.</pre>
+        <input type="text" id="stdin" placeholder="Input" disabled />
       </div>
     </div>
   </section>
@@ -124,6 +136,7 @@
 
     var compile_button = document.getElementById("compile");
     var kill_button = document.getElementById("kill");
+    var stdin_input = document.getElementById("stdin");
 
     var socket = io("/compiler");
     socket.on('started', function(msg) {
@@ -146,6 +159,7 @@
         log.innerText += "Compiler exited with code " + msg.ecode + ".\n";
         log.innerText += msg.logs;
       }
+      stdin_input.disabled = false;
     });
     socket.on('stdout', function(msg) {
       out.innerText += msg.data;
@@ -153,22 +167,32 @@
     socket.on('stderr', function(msg) {
       out.innerText += msg.data;
     });
+    socket.on('stdin_ack', function(msg) {
+      out.innerText += msg.data;
+    });
     socket.on('done', function(msg) {
       log.innerText += "Program exited with code " + msg.ecode + ".\n";
       compile_button.disabled = false;
       kill_button.disabled = true;
+      stdin_input.disabled = true;
     });
 
-    compile_button.onclick = function() {
+    compile_button.onclick = function(e) {
       log.innerText = "";
       out.innerText = "";
       socket.emit('compile', editor.getValue());
       compile_button.disabled = true;
     }
-    kill_button.onclick = function() {
+    kill_button.onclick = function(e) {
       log.innerText += "Trying to kill the running process...\n";
       socket.emit('kill', null);
       kill_button.disabled = true;
+    }
+    stdin_input.onkeypress = function(e) {
+      if (e.keyCode == 13) {
+        socket.emit('stdin', stdin_input.value + "\n");
+        stdin_input.value = "";
+      }
     }
     window.onbeforeunload = function(e) {
       if (typeof(Storage) !== "undefined") {
