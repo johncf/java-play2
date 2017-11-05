@@ -33,11 +33,17 @@ def reset_dir(path):
         os.rmdir(path)
     os.makedirs(path)
 
-def read2queue(key, stream, notifq):
+def read2queue(key, stream, notifq, limit=2048):
+    total = 0
     while True:
+        if total > limit:
+            stream.close()
+            notifq.put((key, b'%\n\n>>> output limit exceeded! stream closed <<<'))
+            break
         out = stream.read1(256)
         if out:
             notifq.put((key, out))
+            total += len(out)
         else:
             notifq.put((key, None))
             break
