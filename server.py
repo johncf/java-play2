@@ -1,9 +1,19 @@
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
+import os
 
 import compiler
 
-app = Flask('javaplay', static_url_path='', static_folder='static')
+frozen = getattr(sys, 'frozen', False)
+
+if frozen:
+    root_dir = os.path.dirname(sys.executable)
+else:
+    root_dir = os.path.dirname(os.path.realpath(__file__))
+
+sess_dir = os.path.join(root_dir, 'sessions')
+
+app = Flask('javaplay', static_url_path='', static_folder=os.path.join(root_dir, 'static'))
 socketio = SocketIO(app)
 
 class Callbacks:
@@ -30,6 +40,16 @@ class Callbacks:
     def done(self, ecode):
         self._emit('done', {'ecode': ecode})
 
+def reset_dir(path):
+    if os.path.isdir(path):
+        for root, dirs, files in os.walk(path, topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
+    else:
+        os.makedirs(path)
+
 sid_program_map = {}
 
 @app.route('/')
@@ -40,7 +60,9 @@ def root():
 def compile(msg):
     sid = request.sid
     print("== compile:", sid)
-    prog = compiler.Program(msg, sid, Callbacks(socketio, sid))
+    prog_dir = os.path.join(sess_dir, sid)
+    reset_dir(prog_dir)
+    prog = compiler.Program(msg, prog_dir, Callbacks(socketio, sid))
     prog.spawn_bg()
     sid_program_map[sid] = prog
 
@@ -69,5 +91,7 @@ def disconnect():
     if sid in sid_program_map:
         del sid_program_map[sid]
 
-if __name__ == "__main__":
+if frozen or __name__ == "__main__":
+    if not os.path.isdir(sess_dir):
+        os.makedirs(sess_dir)
     socketio.run(app, port=8040)

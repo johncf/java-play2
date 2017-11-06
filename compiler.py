@@ -1,15 +1,10 @@
 from gevent.subprocess import Popen, PIPE, STDOUT, TimeoutExpired
 from gevent.queue import Queue, Empty
+from gevent import Greenlet
 import os
 import re
-from gevent import Greenlet
-
-root_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "sessions")
-if not os.path.exists(root_dir):
-    os.makedirs(root_dir)
 
 class_pat = re.compile("^(public )?class (?P<name>\w+)", re.MULTILINE)
-dir_pat = re.compile("^[a-z0-9]+$")
 
 def extract_class_name(source):
     m = class_pat.search(source)
@@ -22,16 +17,6 @@ def write_file(path, contents):
     f = open(path, "w")
     f.write(contents)
     f.close()
-
-def reset_dir(path):
-    if os.path.exists(path):
-        for root, dirs, files in os.walk(path, topdown=False):
-            for name in files:
-                os.remove(os.path.join(root, name))
-            for name in dirs:
-                os.rmdir(os.path.join(root, name))
-        os.rmdir(path)
-    os.makedirs(path)
 
 def read2queue(key, stream, notifq, limit=2048):
     total = 0
@@ -51,14 +36,13 @@ def read2queue(key, stream, notifq, limit=2048):
 class Program:
     # callbacks must have the following methods:
     #     compiled(ecode, logs), stdout(data), stderr(data), stdin_ack(data), done(ecode)
-    def __init__(self, source, dirname, callbacks):
+    def __init__(self, source, dirpath, callbacks):
         if type(source) is not str and len(source) < 9:
             raise ValueError("source must be a non-empty string")
-        if dir_pat.match(dirname) is None:
-            raise ValueError("dirname must be alphanumeric")
+        if not os.path.isdir(dirpath):
+            raise ValueError("dirpath must be a valid directory")
         self._name = extract_class_name(source)
-        self._dir = os.path.join(root_dir, dirname)
-        reset_dir(self._dir)
+        self._dir = dirpath
         write_file(os.path.join(self._dir, self._name + ".java"), source)
         self._queue = Queue()
         self._cbs = callbacks
