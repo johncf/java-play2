@@ -153,23 +153,23 @@
 
     var socket = io("/compiler");
     socket.on('started', function(msg) {
-      log.innerText += "Compiling...\n";
+      log.innerText = "Compiling...\n";
       kill_button.disabled = false;
     });
     socket.on('compiled', function(msg) {
       if (msg.ecode == 0) {
-        log.innerText += "Compiled without errors";
+        log.innerText = "Compiled without errors";
         if (msg.logs) {
           log.innerText += ", with logs:\n";
           log.innerText += msg.logs;
         } else {
           log.innerText += ".\n";
         }
-        if (!msg.done) {
-          log.innerText += "Executing...\n";
-        }
+        log.innerText += "Executing...\n";
+      } else if (msg.ecode == null) {
+        log.innerText = "Compilation failed. Please try again...\n";
       } else {
-        log.innerText += "Compiler exited with code " + msg.ecode + ".\n";
+        log.innerText = "Compiler exited with errors:\n";
         log.innerText += msg.logs;
       }
       stdin_input.disabled = false;
@@ -185,7 +185,9 @@
       out.innerText += msg.data;
     });
     socket.on('done', function(msg) {
-      log.innerText += "Program exited with code " + msg.ecode + ".\n";
+      if (msg.ecode !== null) {
+        log.innerText += "Program exited with code " + msg.ecode + ".\n";
+      }
       compile_button.disabled = false;
       kill_button.disabled = true;
       stdin_input.disabled = true;
@@ -195,7 +197,7 @@
     compile_button.onclick = function(e) {
       log.innerText = "";
       out.innerText = "";
-      socket.emit('compile', editor.getValue());
+      socket.emit("compile", editor.getValue().replace(/\r\n/g, "\n"));
       compile_button.disabled = true;
     }
     kill_button.onclick = function(e) {
