@@ -5,7 +5,6 @@ A web-based Java playground for single-file console applications.
 ## Requirements
 
 - Python 3.4+
-- [Gevent](http://www.gevent.org/)
 - [Flask](http://flask.pocoo.org/)
 - [Flask-SocketIO](https://github.com/miguelgrinberg/Flask-SocketIO)
 

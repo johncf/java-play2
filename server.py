@@ -15,7 +15,12 @@ else:
 sess_dir = os.path.join(root_dir, 'sessions')
 
 app = Flask('javaplay', static_url_path='', static_folder=os.path.join(root_dir, 'static'))
-socketio = SocketIO(app)
+
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.WARNING)
+
+socketio = SocketIO(app, async_mode='threading')
 
 class Callbacks:
     def __init__(self, socketio, sid):

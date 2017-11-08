@@ -1,6 +1,6 @@
-from gevent.subprocess import Popen, PIPE, STDOUT, TimeoutExpired
-from gevent.queue import Queue, Empty
-from gevent import Greenlet
+from subprocess import Popen, PIPE, STDOUT, TimeoutExpired
+from queue import Queue, Empty
+from threading import Thread
 import os
 import re
 
@@ -62,7 +62,7 @@ class Program:
         return Popen(["java", self._name], cwd=self._dir, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
     def spawn_bg(self):
-        t = Greenlet(spawn, self)
+        t = _spawn(_main, args=(self,))
         t.start()
         return t
 
@@ -74,16 +74,20 @@ class Program:
             raise TypeError("data must be bytes")
         self._queue.put(("stdin", data))
 
-def spawn(program):
+def _spawn(func, args):
+    #return Greenlet(func, *args)
+    return Thread(target=func, args=args)
+
+def _main(program):
     ecode, logs = program._compile()
     program._cbs.compiled(ecode, logs)
     if ecode != 0:
         program._cbs.done(None)
         return
     proc = program._execute()
-    outt = Greenlet(read2queue, 'stdout', proc.stdout, program._queue)
+    outt = _spawn(read2queue, args=('stdout', proc.stdout, program._queue))
     outt.start()
-    errt = Greenlet(read2queue, 'stderr', proc.stderr, program._queue)
+    errt = _spawn(read2queue, args=('stderr', proc.stderr, program._queue))
     errt.start()
     done = False
     while True:

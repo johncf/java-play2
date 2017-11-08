@@ -11,7 +11,7 @@ options = {
                      "asyncio.sslproto",
                      "asyncio.selector_events",
                      "asyncio.windows_utils",
-                     "engineio.async_gevent"]
+                     "engineio.async_threading"]
     }
 }
 
