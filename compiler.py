@@ -50,7 +50,7 @@ class Program:
     def _compile(self):
         proc = Popen(["javac", "-Xlint", self._name + ".java"], cwd=self._dir, stdout=PIPE, stderr=STDOUT)
         try:
-            out, _ = proc.communicate(timeout=5)
+            out, _ = proc.communicate(timeout=8)
             ecode = proc.returncode
         except TimeoutExpired:
             proc.kill()
