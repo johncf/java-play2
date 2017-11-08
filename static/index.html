@@ -115,7 +115,7 @@
   </section>
   <section id="content">
     <div class="hsplit" id="left">
-      <pre id="editor"></pre>
+      <div id="editor"></div>
     </div>
     <div class="hsplit" id="right">
       <div class="vsplit" id="rtop">
@@ -129,64 +129,65 @@
   </section>
   <script src="/js/ace/ace.js"></script>
   <script>
-    var editor = ace.edit("editor");
+    const editor = ace.edit("editor");
     editor.setTheme("ace/theme/tomorrow");
     editor.session.setMode("ace/mode/java");
+    editor.session.doc.setNewLineMode("unix");
     var showCode = "public class Test {\n    public static void main(String[] args) {\n    }\n}";
+    const is_new = window.location.hash == "#!new";
     if (typeof(Storage) === "undefined") {
       alert("The code you write will not be saved!");
-    } else if (localStorage.javaSource) {
-      if (window.location.hash == "#!new") {
-        history.replaceState('', document.title, window.location.pathname);
-      } else {
-        showCode = localStorage.javaSource;
-      }
+    } else if (localStorage.javaSource && !is_new) {
+      showCode = localStorage.javaSource;
+    }
+    if (is_new) {
+      history.replaceState('', document.title, window.location.pathname);
     }
     editor.setValue(showCode, 1);
 
-    var log = document.getElementById("logs");
-    var out = document.getElementById("output");
+    const log = document.getElementById("logs");
+    const out = document.getElementById("output");
 
-    var compile_button = document.getElementById("compile");
-    var kill_button = document.getElementById("kill");
-    var stdin_input = document.getElementById("stdin");
+    const compile_button = document.getElementById("compile");
+    const kill_button = document.getElementById("kill");
+    const stdin_input = document.getElementById("stdin");
 
-    var socket = io("/compiler");
+    const socket = io("/compiler");
     socket.on('started', function(msg) {
-      log.innerText = "Compiling...\n";
+      log.innerHTML = "Compiling...\n";
       kill_button.disabled = false;
     });
     socket.on('compiled', function(msg) {
       if (msg.ecode == 0) {
-        log.innerText = "Compiled without errors";
+        log.innerHTML = "Compiled without errors";
         if (msg.logs) {
-          log.innerText += ", with logs:\n";
-          log.innerText += msg.logs;
+          log.innerHTML += ", with logs:\n";
+          log.innerHTML += msg.logs;
         } else {
-          log.innerText += ".\n";
+          log.innerHTML += ".\n";
         }
-        log.innerText += "Executing...\n";
+        log.innerHTML += "Executing...\n";
       } else if (msg.ecode == null) {
-        log.innerText = "Compilation failed. Please try again...\n";
+        log.innerHTML = "Compilation failed. Please try again...\n";
       } else {
-        log.innerText = "Compiler exited with errors:\n";
-        log.innerText += msg.logs;
+        log.innerHTML = "Compiler exited with errors:\n";
+        log.innerHTML += msg.logs;
       }
       stdin_input.disabled = false;
       stdin_input.focus();
     });
     socket.on('stdout', function(msg) {
-      out.innerText += msg.data;
+      out.innerHTML += msg.data;
     });
     socket.on('stderr', function(msg) {
-      out.innerText += msg.data;
+      out.innerHTML += msg.data;
     });
     socket.on('stdin_ack', function(msg) {
-      out.innerText += msg.data;
+      out.innerHTML += msg.data;
     });
     socket.on('done', function(msg) {
       if (msg.ecode !== null) {
-        log.innerText += "Program exited with code " + msg.ecode + ".\n";
+        log.innerHTML += "Program exited with code " + msg.ecode + ".\n";
       }
       compile_button.disabled = false;
       kill_button.disabled = true;
@@ -195,13 +196,13 @@
     });
 
     compile_button.onclick = function(e) {
-      log.innerText = "";
-      out.innerText = "";
-      socket.emit("compile", editor.getValue().replace(/\r\n/g, "\n"));
+      log.innerHTML = "";
+      out.innerHTML = "";
+      socket.emit("compile", editor.getValue());
       compile_button.disabled = true;
     }
     kill_button.onclick = function(e) {
-      log.innerText += "Trying to kill the running process...\n";
+      log.innerHTML += "Trying to kill the process...\n";
       socket.emit('kill', null);
       kill_button.disabled = true;
     }
