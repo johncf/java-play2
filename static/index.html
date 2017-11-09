@@ -109,7 +109,7 @@
 
 <body>
   <section id="header">
-    <button id="compile">Compile &amp; Run</button>
+    <button id="compile">Compile &amp; Execute</button>
     <button id="kill" disabled>Stop</button>
     <button style="float: right" onclick="window.open('#')">New</button>
   </section>
@@ -119,7 +119,7 @@
     </div>
     <div class="hsplit" id="right">
       <div class="vsplit" id="rtop">
-        <pre id="logs">Click "Compile &amp; Run" when ready.</pre>
+        <pre id="logs">Click "Compile &amp; Execute" when ready.</pre>
       </div>
       <div class="vsplit" id="rbot">
         <pre id="output">Program output will show up here.</pre>
@@ -163,30 +163,39 @@
     const log = document.getElementById("logs");
     const out = document.getElementById("output");
 
+    var log_pos = 0;
+    function logClear() {
+      log.innerHTML = "";
+      log_pos = 0;
+    }
+    function logAppend(text, is_volatile) {
+      log.innerHTML = log.innerHTML.substring(0, log_pos) + text;
+      if (!is_volatile) {
+        log_pos = log.innerHTML.length;
+      }
+    }
+
     const compile_button = document.getElementById("compile");
     const kill_button = document.getElementById("kill");
     const stdin_input = document.getElementById("stdin");
 
     const socket = io("/compiler");
     socket.on('started', function(msg) {
-      log.innerHTML = "Compiling...\n";
+      logAppend("Compiling...", true);
       kill_button.disabled = false;
     });
     socket.on('compiled', function(msg) {
       if (msg.ecode == 0) {
-        log.innerHTML = "Compiled without errors";
         if (msg.logs) {
-          log.innerHTML += ", with logs:\n";
-          log.innerHTML += msg.logs;
+          logAppend("Compiled with logs:\n" + msg.logs, false);
         } else {
-          log.innerHTML += ".\n";
+          logAppend("Compiled successfully.\n", false);
         }
-        log.innerHTML += "Executing...\n";
+        logAppend("Executing...", true);
       } else if (msg.ecode == null) {
-        log.innerHTML = "Compilation failed. Please try again...\n";
+        logAppend("Compilation failed. Please try again...\n", false);
       } else {
-        log.innerHTML = "Compiler exited with errors:\n";
-        log.innerHTML += msg.logs;
+        logAppend("Compiler reported errors:\n" + msg.logs, false);
       }
       stdin_input.disabled = false;
       stdin_input.focus();
@@ -204,8 +213,10 @@
       out.scrollTop = out.scrollHeight;
     });
     socket.on('done', function(msg) {
-      if (msg.ecode !== null) {
-        log.innerHTML += "Program exited with code " + msg.ecode + ".\n";
+      if (msg.ecode == 0) {
+        logAppend("Execution completed.\n", false);
+      } else if (msg.ecode !== null) {
+        logAppend("Execution stopped. [" + msg.ecode + "]\n", false);
       }
       compile_button.disabled = false;
       kill_button.disabled = true;
@@ -215,14 +226,15 @@
 
     compile_button.onclick = function(e) {
       let source = editor.getValue();
-      log.innerHTML = "";
+      logClear();
+      logAppend("Compilation requested...", true);
       out.innerHTML = "";
       socket.emit("compile", source);
       compile_button.disabled = true;
       setSource(source);
     }
     kill_button.onclick = function(e) {
-      log.innerHTML += "Trying to kill the process...\n";
+      logAppend("Trying to stop execution...", true);
       socket.emit('kill', null);
       kill_button.disabled = true;
     }
@@ -243,6 +255,7 @@
       gutterSize: 8
     })
     Split(['#rtop', '#rbot'], {
+      sizes: [40, 60],
       direction: 'vertical',
       gutterSize: 8
     })
