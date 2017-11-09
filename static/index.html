@@ -234,6 +234,7 @@
     }
     window.onbeforeunload = function(e) {
       setSource(editor.getValue());
+      socket.close();
     }
   </script>
   <script src="/js/split.min.js"></script>
