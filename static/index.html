@@ -193,12 +193,15 @@
     });
     socket.on('stdout', function(msg) {
       out.innerHTML += msg.data;
+      out.scrollTop = out.scrollHeight;
     });
     socket.on('stderr', function(msg) {
       out.innerHTML += msg.data;
+      out.scrollTop = out.scrollHeight;
     });
     socket.on('stdin_ack', function(msg) {
       out.innerHTML += msg.data;
+      out.scrollTop = out.scrollHeight;
     });
     socket.on('done', function(msg) {
       if (msg.ecode !== null) {
