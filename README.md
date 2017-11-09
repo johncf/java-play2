@@ -13,3 +13,9 @@ A web-based Java playground for single-file console applications.
 This was developed to provide an easy-to-use UI for students learning programming for the first time, due to a complete lack of user-friendly, lightweight and bug-free IDE for Java.
 
 As such, this is intended to be run and used locally, since its performance won't scale well to more than a handful of users, and more importantly, it is very insecure for the open web (for starters, program execution is not sandboxed).
+
+## Acknowledgements
+
+- [Ace Editor](https://ace.c9.io/)
+- [Split.js](http://nathancahill.github.io/Split.js/)
+- [Socket.io](https://socket.io/)
