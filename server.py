@@ -4,6 +4,7 @@ import os
 import sys
 
 import compiler
+import singleton
 
 frozen = getattr(sys, 'frozen', False)
 
@@ -17,8 +18,7 @@ sess_dir = os.path.join(root_dir, 'sessions')
 app = Flask('javaplay', static_url_path='', static_folder=os.path.join(root_dir, 'static'))
 
 import logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.WARNING)
+logging.getLogger('werkzeug').setLevel(logging.WARNING)
 
 socketio = SocketIO(app, async_mode='threading')
 
@@ -98,6 +98,8 @@ def disconnect():
         del sid_program_map[sid]
 
 if frozen or __name__ == "__main__":
-    if not os.path.isdir(sess_dir):
-        os.makedirs(sess_dir)
-    socketio.run(app, port=8040)
+    lockpath = os.path.join(root_dir, 'instance.lock')
+    with singleton.InstanceFileLock(lockpath):
+        if not os.path.isdir(sess_dir):
+            os.makedirs(sess_dir)
+        socketio.run(app, port=8040)
