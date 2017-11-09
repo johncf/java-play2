@@ -163,16 +163,26 @@
     const log = document.getElementById("logs");
     const out = document.getElementById("output");
 
+    function htmlEscape(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
     var log_pos = 0;
     function logClear() {
       log.innerHTML = "";
       log_pos = 0;
     }
-    function logAppend(text, is_volatile) {
-      log.innerHTML = log.innerHTML.substring(0, log_pos) + text;
+    function logAppend(str, is_volatile) {
+      log.innerHTML = log.innerHTML.substring(0, log_pos) + htmlEscape(str);
       if (!is_volatile) {
         log_pos = log.innerHTML.length;
       }
+    }
+    function outClear() {
+      out.innerHTML = "";
+    }
+    function outAppend(str) {
+      out.innerHTML += htmlEscape(str);
     }
 
     const compile_button = document.getElementById("compile");
@@ -201,15 +211,15 @@
       stdin_input.focus();
     });
     socket.on('stdout', function(msg) {
-      out.innerHTML += msg.data;
+      outAppend(msg.data);
       out.scrollTop = out.scrollHeight;
     });
     socket.on('stderr', function(msg) {
-      out.innerHTML += msg.data;
+      outAppend(msg.data);
       out.scrollTop = out.scrollHeight;
     });
     socket.on('stdin_ack', function(msg) {
-      out.innerHTML += msg.data;
+      outAppend(msg.data);
       out.scrollTop = out.scrollHeight;
     });
     socket.on('done', function(msg) {
@@ -227,8 +237,8 @@
     compile_button.onclick = function(e) {
       let source = editor.getValue();
       logClear();
+      outClear();
       logAppend("Compilation requested...", true);
-      out.innerHTML = "";
       socket.emit("compile", source);
       compile_button.disabled = true;
       setSource(source);
