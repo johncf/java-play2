@@ -18,21 +18,6 @@ def write_file(path, contents):
     f.write(contents)
     f.close()
 
-def read2queue(key, stream, notifq, limit=2048):
-    total = 0
-    while True:
-        if total > limit:
-            stream.close()
-            notifq.put((key, b'%\n\n>>> output limit exceeded! stream closed <<<'))
-            break
-        out = stream.read1(256)
-        if out:
-            notifq.put((key, out))
-            total += len(out)
-        else:
-            notifq.put((key, None))
-            break
-
 class Program:
     # callbacks must have the following methods:
     #     compiled(ecode, logs), stdout(data), stderr(data), stdin_ack(data), done(ecode)
@@ -48,15 +33,7 @@ class Program:
         self._cbs = callbacks
 
     def _compile(self):
-        proc = Popen(["javac", "-Xlint", self._name + ".java"], cwd=self._dir, stdout=PIPE, stderr=STDOUT)
-        try:
-            out, _ = proc.communicate(timeout=8)
-            ecode = proc.returncode
-        except TimeoutExpired:
-            proc.kill()
-            out, _ = proc.communicate()
-            ecode = None
-        return (ecode, out)
+        return Popen(["javac", "-Xlint", self._name + ".java"], cwd=self._dir, stdout=PIPE, stderr=STDOUT)
 
     def _execute(self):
         return Popen(["java", self._name], cwd=self._dir, stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -78,16 +55,57 @@ def _spawn(func, args):
     #return Greenlet(func, *args)
     return Thread(target=func, args=args)
 
+def read2Q(key, stream, notifq, limit=2048):
+    total = 0
+    while True:
+        if total > limit:
+            stream.close()
+            notifq.put((key, b'%\n\n>>> output limit exceeded! stream closed <<<'))
+            break
+        out = stream.read1(256)
+        if out:
+            notifq.put((key, out))
+            total += len(out)
+        else:
+            notifq.put((key, None))
+            break
+
 def _main(program):
-    ecode, logs = program._compile()
+    proc = program._compile()
+    outt = _spawn(read2Q, args=('stdout', proc.stdout, program._queue))
+    outt.start()
+    done = False
+    logs = b''
+    while True:
+        try:
+            if not done:
+                key, data = program._queue.get(timeout=1)
+            else:
+                outt.join()
+                key, data = program._queue.get_nowait()
+
+            if key == 'stdout':
+                if data is not None:
+                    logs += data
+            elif key == 'kill':
+                proc.kill()
+        except Empty:
+            if done:
+                break
+
+        if proc.poll() is not None:
+            done = True
+
+    ecode = proc.returncode
     program._cbs.compiled(ecode, logs)
     if ecode != 0:
         program._cbs.done(None)
         return
+
     proc = program._execute()
-    outt = _spawn(read2queue, args=('stdout', proc.stdout, program._queue))
+    outt = _spawn(read2Q, args=('stdout', proc.stdout, program._queue))
     outt.start()
-    errt = _spawn(read2queue, args=('stderr', proc.stderr, program._queue))
+    errt = _spawn(read2Q, args=('stderr', proc.stderr, program._queue))
     errt.start()
     done = False
     while True:
@@ -100,9 +118,7 @@ def _main(program):
                 key, data = program._queue.get_nowait()
 
             if key == 'stdin':
-                if data is None:
-                    proc.stdin.close()
-                else:
+                if len(data) > 0:
                     proc.stdin.write(data)
                     program._cbs.stdout(data)
                     try:

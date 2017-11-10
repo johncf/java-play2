@@ -202,10 +202,13 @@
           logAppend("Compiled successfully.\n", false);
         }
         logAppend("Executing...", true);
+        kill_button.disabled = false;
       } else if (msg.ecode == null) {
         logAppend("Compilation failed. Please try again...\n", false);
-      } else {
+      } else if (msg.logs) {
         logAppend("Compiler reported errors:\n" + msg.logs, false);
+      } else {
+        logAppend("Compiler stopped!\n", false);
       }
       stdin_input.disabled = false;
       stdin_input.focus();
@@ -244,7 +247,7 @@
       setSource(source);
     }
     kill_button.onclick = function(e) {
-      logAppend("Trying to stop execution...", true);
+      logAppend("Trying to stop...", true);
       socket.emit('kill', null);
       kill_button.disabled = true;
     }
