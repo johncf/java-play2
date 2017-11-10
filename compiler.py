@@ -77,24 +77,24 @@ def _main(program):
     done = False
     logs = b''
     while True:
+        if proc.poll() is not None: # proc exited
+            done = True
+            outt.join()
         try:
             if not done:
-                key, data = program._queue.get(timeout=1)
+                key, data = program._queue.get(timeout=0.5)
             else:
-                outt.join()
                 key, data = program._queue.get_nowait()
-
-            if key == 'stdout':
-                if data is not None:
-                    logs += data
-            elif key == 'kill':
-                proc.kill()
         except Empty:
             if done:
                 break
+            continue
 
-        if proc.poll() is not None:
-            done = True
+        if key == 'stdout':
+            if data is not None:
+                logs += data
+        elif key == 'kill':
+            proc.kill()
 
     ecode = proc.returncode
     program._cbs.compiled(ecode, logs)
@@ -109,35 +109,35 @@ def _main(program):
     errt.start()
     done = False
     while True:
+        if proc.poll() is not None:
+            done = True
+            outt.join()
+            errt.join()
         try:
             if not done:
-                key, data = program._queue.get(timeout=1)
+                key, data = program._queue.get(timeout=0.5)
             else:
-                outt.join()
-                errt.join()
                 key, data = program._queue.get_nowait()
-
-            if key == 'stdin':
-                if len(data) > 0:
-                    proc.stdin.write(data)
-                    program._cbs.stdout(data)
-                    try:
-                        proc.stdin.flush()
-                    except OSError as e:
-                        print("== OSError:", e)
-            elif key == 'stdout':
-                if data is not None:
-                    program._cbs.stdout(data)
-            elif key == 'stderr':
-                if data is not None:
-                    program._cbs.stderr(data)
-            elif key == 'kill':
-                proc.kill()
         except Empty:
             if done:
                 break
+            continue
 
-        if proc.poll() is not None:
-            done = True
+        if key == 'stdin':
+            if len(data) > 0:
+                proc.stdin.write(data)
+                program._cbs.stdout(data)
+                try:
+                    proc.stdin.flush()
+                except OSError as e:
+                    print("== OSError:", e)
+        elif key == 'stdout':
+            if data is not None:
+                program._cbs.stdout(data)
+        elif key == 'stderr':
+            if data is not None:
+                program._cbs.stderr(data)
+        elif key == 'kill':
+            proc.kill()
 
     program._cbs.done(proc.returncode)
