@@ -202,7 +202,6 @@
           logAppend("Compiled successfully.\n", false);
         }
         logAppend("Executing...", true);
-        kill_button.disabled = false;
       } else if (msg.ecode == null) {
         logAppend("Compilation failed. Please try again...\n", false);
       } else if (msg.logs) {

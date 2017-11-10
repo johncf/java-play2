@@ -75,6 +75,7 @@ def _main(program):
     outt = _spawn(read2Q, args=('stdout', proc.stdout, program._queue))
     outt.start()
     done = False
+    killed = False
     logs = b''
     while True:
         if proc.poll() is not None: # proc exited
@@ -95,11 +96,15 @@ def _main(program):
                 logs += data
         elif key == 'kill':
             proc.kill()
+            killed = True
 
     ecode = proc.returncode
     program._cbs.compiled(ecode, logs)
     if ecode != 0:
         program._cbs.done(None)
+        return
+    elif killed:
+        program._cbs.done(-9)
         return
 
     proc = program._execute()
