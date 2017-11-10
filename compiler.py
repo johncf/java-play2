@@ -44,7 +44,7 @@ class Program:
         return t
 
     def kill(self):
-        self._queue.put(("kill", None))
+        self._queue.put(("kill", None), timeout=1)
 
     def stdin(self, data):
         if (type(data) != bytes):

@@ -80,7 +80,7 @@ def kill(msg):
         sid_program_map[sid].kill()
 
 @socketio.on('stdin', namespace="/compiler")
-def kill(data):
+def stdin(data):
     sid = request.sid
     print("== stdin:", sid)
     if sid in sid_program_map:
@@ -95,6 +95,7 @@ def disconnect():
     sid = request.sid
     print("== disconnected:", sid)
     if sid in sid_program_map:
+        sid_program_map[sid].kill()
         del sid_program_map[sid]
 
 if frozen or __name__ == "__main__":
