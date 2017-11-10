@@ -70,6 +70,8 @@ def compile(msg):
     reset_dir(prog_dir)
     prog = compiler.Program(msg, prog_dir, Callbacks(socketio, sid))
     prog.spawn_bg()
+    if sid in sid_program_map:
+        sid_program_map[sid].kill()
     sid_program_map[sid] = prog
 
 @socketio.on('kill', namespace="/compiler")
