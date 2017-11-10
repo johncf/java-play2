@@ -58,6 +58,11 @@ def reset_dir(path):
 
 sid_program_map = {}
 
+def map_kill(sid):
+    if sid in sid_program_map:
+        sid_program_map[sid].kill()
+        del sid_program_map[sid]
+
 @app.route('/')
 def root():
     return app.send_static_file('index.html')
@@ -70,16 +75,14 @@ def compile(msg):
     reset_dir(prog_dir)
     prog = compiler.Program(msg, prog_dir, Callbacks(socketio, sid))
     prog.spawn_bg()
-    if sid in sid_program_map:
-        sid_program_map[sid].kill()
+    map_kill(sid)
     sid_program_map[sid] = prog
 
 @socketio.on('kill', namespace="/compiler")
 def kill(msg):
     sid = request.sid
     print("== kill:", sid)
-    if sid in sid_program_map:
-        sid_program_map[sid].kill()
+    map_kill(sid)
 
 @socketio.on('stdin', namespace="/compiler")
 def stdin(data):
@@ -96,13 +99,12 @@ def connect():
 def disconnect():
     sid = request.sid
     print("== disconnected:", sid)
-    if sid in sid_program_map:
-        sid_program_map[sid].kill()
-        del sid_program_map[sid]
+    map_kill(sid)
 
 if frozen or __name__ == "__main__":
     lockpath = os.path.join(root_dir, 'instance.lock')
     with singleton.InstanceFileLock(lockpath):
         if not os.path.isdir(sess_dir):
             os.makedirs(sess_dir)
+        print("Listening on 8040")
         socketio.run(app, port=8040)
