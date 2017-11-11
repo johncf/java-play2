@@ -109,7 +109,7 @@
 
 <body>
   <section id="header">
-    <button id="compile">Compile &amp; Execute</button>
+    <button id="compile" disabled>Compile &amp; Execute</button>
     <button id="kill" disabled>Stop</button>
     <button style="float: right" onclick="window.open('#')">New</button>
   </section>
@@ -119,7 +119,7 @@
     </div>
     <div class="hsplit" id="right">
       <div class="vsplit" id="rtop">
-        <pre id="logs">Click "Compile &amp; Execute" when ready.</pre>
+        <pre id="logs">Connecting to compiler backend...</pre>
       </div>
       <div class="vsplit" id="rbot">
         <pre id="output">Program output will show up here.</pre>
@@ -190,6 +190,19 @@
     const stdin_input = document.getElementById("stdin");
 
     const socket = io("/compiler");
+    socket.on('connect', function() {
+      logAppend("Click \"Compile & Execute\" when ready.", true);
+      compile_button.disabled = false;
+      kill_button.disabled = true;
+      stdin_input.disabled = true;
+    });
+    socket.on('disconnect', function() {
+      logClear();
+      logAppend("Connection with compiler lost. Please rerun the backend.", true);
+      compile_button.disabled = true;
+      kill_button.disabled = true;
+      stdin_input.disabled = true;
+    });
     socket.on('started', function(msg) {
       logAppend("Compiling...", true);
       kill_button.disabled = false;
