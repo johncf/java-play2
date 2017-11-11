@@ -106,5 +106,10 @@ if frozen or __name__ == "__main__":
     with singleton.InstanceFileLock(lockpath):
         if not os.path.isdir(sess_dir):
             os.makedirs(sess_dir)
-        print("Listening on 8040")
+        print()
+        print("  +-----------------------------------------+")
+        print("  | Compiler Backend listening on port 8040 |")
+        print("  |    Keep this running in background...   |")
+        print("  +-----------------------------------------+")
+        print()
         socketio.run(app, port=8040)

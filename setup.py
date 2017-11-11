@@ -12,6 +12,7 @@ options = {
                      "asyncio.selector_events",
                      "asyncio.windows_utils",
                      "engineio.async_threading"],
+        "excludes": ["gevent"],
         "include_files": ["static"]
     }
 }
