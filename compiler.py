@@ -55,17 +55,19 @@ def _spawn(func, args):
     #return Greenlet(func, *args)
     return Thread(target=func, args=args)
 
-def read2Q(key, stream, notifq, limit=2048):
-    total = 0
+def read2Q(key, stream, notifq, limit_size=4096, limit_lines=256):
+    size = 0
+    lines = 0
     while True:
-        if total > limit:
+        if size > limit_size or lines > limit_lines:
             stream.close()
             notifq.put((key, b'%\n\n>>> output limit exceeded! stream closed <<<'))
             break
         out = stream.read1(256)
         if out:
             notifq.put((key, out))
-            total += len(out)
+            size += len(out)
+            lines += out.count(b'\n')
         else:
             notifq.put((key, None))
             break
