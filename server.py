@@ -73,7 +73,7 @@ def root():
 @socketio.on('compile', namespace="/compiler")
 def compile(msg):
     sid = request.sid
-    print("== compile:", sid)
+    print("compile:", sid)
     prog_dir = os.path.join(sess_dir, sid)
     reset_dir(prog_dir)
     prog = compiler.Program(msg, prog_dir, Callbacks(socketio, sid))
@@ -84,24 +84,24 @@ def compile(msg):
 @socketio.on('kill', namespace="/compiler")
 def kill(msg):
     sid = request.sid
-    print("== kill:", sid)
+    print("kill:", sid)
     map_kill(sid)
 
 @socketio.on('stdin', namespace="/compiler")
 def stdin(data):
     sid = request.sid
-    print("== stdin:", sid)
+    print("stdin:", sid)
     if sid in sid_program_map:
         sid_program_map[sid].stdin(data.encode('utf-8'))
 
 @socketio.on('connect', namespace="/compiler")
 def connect():
-    print("== connected:", request.sid)
+    print("connected:", request.sid)
 
 @socketio.on('disconnect', namespace="/compiler")
 def disconnect():
     sid = request.sid
-    print("== disconnected:", sid)
+    print("disconnected:", sid)
     map_kill(sid)
 
 if frozen or __name__ == "__main__":
