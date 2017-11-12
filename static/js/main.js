@@ -10,8 +10,8 @@ Split(['#rtop', '#rbot'], {
 const sourceTmpl = "public class Test {\n    public static void main(String[] args) {\n    }\n}";
 const storeOk = typeof(Storage) !== "undefined";
 function initIndex() {
-  let idx = storeOk && +localStorage.next || 0;
-  let bang = window.location.hash.substr(2);
+  var idx = storeOk && +localStorage.next || 0;
+  var bang = window.location.hash.substr(2);
   if (/^[0-7]$/.test(bang)) {
     return +bang;
   } else {
@@ -130,7 +130,7 @@ socket.on('done', function(msg) {
 });
 
 compile_button.onclick = function(e) {
-  let source = editor.getValue();
+  var source = editor.getValue();
   logClear();
   outClear();
   logAppend("Compilation requested...", true);
