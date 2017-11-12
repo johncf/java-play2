@@ -12,6 +12,7 @@ A web-based Java compiler frontend to play with single-source console programs. 
 - A modern browser
   - Supporting [`localStorage`][], [`history.replaceState`][], [`const`][], [`box-sizing`][], [`flex`][]
   - Supposedly Firefox 29+, Chrome 29+, Edge, Safari 9+, IE 11, Opera 17+
+- `javac` and `java` in `PATH` when executing server ([example batch file](https://gist.github.com/johncf/a98cd3aa49491c5f58372566883e7810) which does this).
 
 [`localStorage`]: https://caniuse.com/#feat=const
 [`history.replaceState`]: https://caniuse.com/#feat=history

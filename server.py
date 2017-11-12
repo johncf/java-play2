@@ -46,6 +46,9 @@ class Callbacks:
     def done(self, ecode):
         self._emit('done', {'ecode': ecode})
 
+    def error(self, msg):
+        self._emit('backend_error', {'description': msg})
+
 def reset_dir(path):
     if os.path.isdir(path):
         for root, dirs, files in os.walk(path, topdown=False):

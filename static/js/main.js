@@ -69,6 +69,14 @@ const compile_button = document.getElementById("compile");
 const kill_button = document.getElementById("kill");
 const stdin_input = document.getElementById("stdin");
 
+function fatalError(msg) {
+  logClear();
+  logAppend(msg, true);
+  compile_button.disabled = true;
+  kill_button.disabled = true;
+  stdin_input.disabled = true;
+}
+
 const socket = io("/compiler");
 socket.on('connect', function() {
   logAppend("Click \"Compile & Execute\" when ready.", true);
@@ -77,11 +85,10 @@ socket.on('connect', function() {
   stdin_input.disabled = true;
 });
 socket.on('disconnect', function() {
-  logClear();
-  logAppend("Connection with compiler lost. Please rerun the backend.", true);
-  compile_button.disabled = true;
-  kill_button.disabled = true;
-  stdin_input.disabled = true;
+  fatalError("Connection with compiler lost. Please rerun the backend.");
+});
+socket.on('backend_error', function(e) {
+  fatalError(e.description);
 });
 socket.on('started', function(msg) {
   logAppend("Compiling...", true);

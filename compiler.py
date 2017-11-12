@@ -33,10 +33,18 @@ class Program:
         self._cbs = callbacks
 
     def _compile(self):
-        return Popen(["javac", "-Xlint", self._name + ".java"], cwd=self._dir, stdout=PIPE, stderr=STDOUT)
+        try:
+            return Popen(["javac", "-Xlint", self._name + ".java"], cwd=self._dir, stdout=PIPE, stderr=STDOUT)
+        except FileNotFoundError as e:
+            print("Error:", e.strerror)
+            return None
 
     def _execute(self):
-        return Popen(["java", self._name], cwd=self._dir, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        try:
+            return Popen(["java", self._name], cwd=self._dir, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        except FileNotFoundError as e:
+            print("Error:", e.strerror)
+            return None
 
     def spawn_bg(self):
         t = _spawn(_main, args=(self,))
@@ -74,6 +82,9 @@ def read2Q(key, stream, notifq, limit_size=4096, limit_lines=256):
 
 def _main(program):
     proc = program._compile()
+    if proc is None:
+        program._cbs.error("Backend did not find 'javac' in PATH.")
+        return
     outt = _spawn(read2Q, args=('stdout', proc.stdout, program._queue))
     outt.start()
     done = False
