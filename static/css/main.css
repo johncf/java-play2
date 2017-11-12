@@ -1,0 +1,99 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  box-sizing: border-box;
+  min-width: 720px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+}
+
+section#header {
+  background-color: #ace;
+  padding: 8px;
+}
+
+#header button {
+  padding: 2px 8px;
+}
+
+section#content {
+  height: 100vh;
+  overflow: hidden;
+}
+
+#left,
+#right {
+  box-sizing: border-box;
+  padding: 8px;
+}
+
+#left {
+  padding-right: 0;
+}
+
+#right {
+  padding-left: 0;
+}
+
+#rbot {
+  display: flex;
+  flex-direction: column;
+}
+
+#editor,
+#output,
+#logs,
+#stdin {
+  font: 12px/normal Monaco, Consolas, monospace;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+#editor,
+#output,
+#logs {
+  border: 1px solid lightgray;
+  height: 100%;
+  margin: 0;
+}
+
+#output,
+#logs {
+  padding: 4px;
+  overflow: auto;
+}
+
+#stdin {
+  margin-top: 8px;
+  padding: 4px;
+}
+
+.hsplit,
+.vsplit {
+  box-sizing: border-box;
+}
+
+.gutter {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+
+.gutter.gutter-vertical {
+  cursor: row-resize;
+}
+
+.gutter.gutter-horizontal {
+  cursor: col-resize;
+}
+
+.hsplit,
+.gutter.gutter-horizontal {
+  height: 100%;
+  float: left;
+}
