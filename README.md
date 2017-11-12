@@ -1,6 +1,8 @@
 # Java Playground
 
-A web-based Java playground for single-file console applications.
+A web-based Java compiler frontend to play with single-source console programs. [UI Demo][]
+
+[UI Demo]: https://codepen.io/johncf/full/dZWXpW
 
 ## Requirements
 
