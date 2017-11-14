@@ -33,3 +33,25 @@ Code from the following projects are included in this repository:
 - [Ace Editor](https://ace.c9.io/)
 - [Split.js](http://nathancahill.github.io/Split.js/)
 - [Socket.io](https://socket.io/)
+
+## Building a Frozen Executable
+
+- Install all dependencies
+
+  ```sh
+  python -m pip install flask flask-socketio
+  ```
+
+- Install `cx-Freeze` v6.0
+
+  ```sh
+  python -m pip install cx-Freeze==6.0b1
+  ```
+
+- Run build script
+
+  ```sh
+  python setup.py build
+  ```
+
+You can find similarly built binaries [here](https://github.com/johncf/java-play2/releases).
