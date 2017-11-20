@@ -62,8 +62,15 @@ const out = document.getElementById("output");
 function outClear() {
   out.innerHTML = "";
 }
-function outAppend(str) {
-  out.innerHTML += htmlEscape(str);
+function outAppend(str, color) {
+  var node = document.createTextNode(str);
+  if (color) {
+    var span = document.createElement("span");
+    span.style.color = color;
+    span.appendChild(node);
+    node = span;
+  }
+  out.appendChild(node);
 }
 
 const compile_button = document.getElementById("compile");
@@ -118,11 +125,11 @@ socket.on('stdout', function(msg) {
   out.scrollTop = out.scrollHeight;
 });
 socket.on('stderr', function(msg) {
-  outAppend(msg.data);
+  outAppend(msg.data, 'red');
   out.scrollTop = out.scrollHeight;
 });
 socket.on('stdin_ack', function(msg) {
-  outAppend(msg.data);
+  outAppend(msg.data, 'blue');
   out.scrollTop = out.scrollHeight;
 });
 socket.on('done', function(msg) {
