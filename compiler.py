@@ -144,7 +144,7 @@ def _main(program):
         if key == 'stdin':
             if len(data) > 0:
                 proc.stdin.write(data)
-                program._cbs.stdout(data)
+                program._cbs.stdin_ack(data)
                 try:
                     proc.stdin.flush()
                 except OSError as e:
