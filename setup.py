@@ -19,7 +19,7 @@ options = {
 
 setup(
     name = "Java Play",
-    version = "0.9",
+    version = "1.0",
     description = "A web-based Java Playground",
     executables = [Executable("server.py")],
     options = options)
