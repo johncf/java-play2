@@ -50,11 +50,12 @@ function logClear() {
   log.innerHTML = "";
   log_pos = 0;
 }
-function logAppend(str, is_volatile) {
+function logStatus(str) {
   log.innerHTML = log.innerHTML.substring(0, log_pos) + htmlEscape(str);
-  if (!is_volatile) {
-    log_pos = log.innerHTML.length;
-  }
+}
+function logAppend(str) {
+  logStatus(str);
+  log_pos = log.innerHTML.length;
 }
 
 const out = document.getElementById("output");
@@ -71,7 +72,7 @@ const stdin_input = document.getElementById("stdin");
 
 function fatalError(msg) {
   logClear();
-  logAppend(msg, true);
+  logStatus(msg);
   compile_button.disabled = true;
   kill_button.disabled = true;
   stdin_input.disabled = true;
@@ -79,7 +80,7 @@ function fatalError(msg) {
 
 const socket = io("/compiler");
 socket.on('connect', function() {
-  logAppend("Click \"Compile & Execute\" when ready.", true);
+  logStatus("Click \"Compile & Execute\" when ready.");
   compile_button.disabled = false;
   kill_button.disabled = true;
   stdin_input.disabled = true;
@@ -91,23 +92,23 @@ socket.on('backend_error', function(e) {
   fatalError(e.description);
 });
 socket.on('started', function(msg) {
-  logAppend("Compiling...", true);
+  logStatus("Compiling...");
   kill_button.disabled = false;
 });
 socket.on('compiled', function(msg) {
   if (msg.ecode == 0) {
     if (msg.logs) {
-      logAppend("Compiled with logs:\n" + msg.logs, false);
+      logAppend("Compiled with logs:\n" + msg.logs);
     } else {
-      logAppend("Compiled successfully.\n", false);
+      logAppend("Compiled successfully.\n");
     }
-    logAppend("Executing...", true);
+    logStatus("Executing...");
   } else if (msg.ecode == null) {
-    logAppend("Compilation failed. Please try again...\n", false);
+    logAppend("Compilation failed. Please try again...\n");
   } else if (msg.logs) {
-    logAppend("Compiler reported errors:\n" + msg.logs, false);
+    logAppend("Compiler reported errors:\n" + msg.logs);
   } else {
-    logAppend("Compiler stopped!\n", false);
+    logAppend("Compiler stopped!\n");
   }
   stdin_input.disabled = false;
   stdin_input.focus();
@@ -126,9 +127,9 @@ socket.on('stdin_ack', function(msg) {
 });
 socket.on('done', function(msg) {
   if (msg.ecode == 0) {
-    logAppend("Execution completed.\n", false);
+    logAppend("Execution completed.\n");
   } else if (msg.ecode !== null) {
-    logAppend("Execution stopped. [" + msg.ecode + "]\n", false);
+    logAppend("Execution stopped. [" + msg.ecode + "]\n");
   }
   compile_button.disabled = false;
   kill_button.disabled = true;
@@ -140,13 +141,13 @@ compile_button.onclick = function(e) {
   var source = editor.getValue();
   logClear();
   outClear();
-  logAppend("Compilation requested...", true);
+  logStatus("Compilation requested...");
   socket.emit("compile", source);
   compile_button.disabled = true;
   setSource(source);
 }
 kill_button.onclick = function(e) {
-  logAppend("Trying to stop...", true);
+  logStatus("Trying to stop...");
   socket.emit('kill', null);
   kill_button.disabled = true;
 }
