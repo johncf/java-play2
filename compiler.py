@@ -4,7 +4,7 @@ from threading import Thread
 import os
 import re
 
-class_pat = re.compile("^(public )?class (?P<name>\w+)", re.MULTILINE)
+class_pat = re.compile("(public\s+)?class\s+(?P<name>\w+)", re.MULTILINE)
 
 def extract_class_name(source):
     m = class_pat.search(source)
