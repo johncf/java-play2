@@ -169,3 +169,7 @@ window.onbeforeunload = function(e) {
   setSource(editor.getValue());
   socket.close();
 }
+
+window.onhashchange = function(e) {
+  window.location.reload();
+}
