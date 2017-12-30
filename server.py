@@ -1,21 +1,12 @@
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
 import os
-import sys
 
 import compiler
 import singleton
+import settings
 
-frozen = getattr(sys, 'frozen', False)
-
-if frozen:
-    root_dir = os.path.dirname(sys.executable)
-else:
-    root_dir = os.path.dirname(os.path.realpath(__file__))
-
-sess_dir = os.path.join(root_dir, 'sessions')
-
-app = Flask('javaplay', static_url_path='', static_folder=os.path.join(root_dir, 'static'))
+app = Flask('javaplay', static_url_path='', static_folder=settings.static_dir)
 
 import logging
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
@@ -74,7 +65,7 @@ def root():
 def compile(msg):
     sid = request.sid
     print("compile:", sid)
-    prog_dir = os.path.join(sess_dir, sid)
+    prog_dir = os.path.join(settings.sessions_dir, sid)
     reset_dir(prog_dir)
     prog = compiler.Program(msg, prog_dir, Callbacks(socketio, sid))
     prog.spawn_bg()
@@ -104,11 +95,11 @@ def disconnect():
     print("disconnected:", sid)
     map_kill(sid)
 
-if frozen or __name__ == "__main__":
-    lockpath = os.path.join(root_dir, 'instance.lock')
+if settings.is_frozen or __name__ == "__main__":
+    lockpath = os.path.join(settings.root_dir, 'instance.lock')
     with singleton.InstanceFileLock(lockpath):
-        if not os.path.isdir(sess_dir):
-            os.makedirs(sess_dir)
+        if not os.path.isdir(settings.sessions_dir):
+            os.makedirs(settings.sessions_dir)
         print()
         print("  +-----------------------------------------+")
         print("  | Compiler Backend listening on port 8040 |")

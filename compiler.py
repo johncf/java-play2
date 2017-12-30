@@ -4,7 +4,15 @@ from threading import Thread
 import os
 import re
 
+import settings
+
 class_pat = re.compile("(public\s+)?class\s+(?P<name>\w+)", re.MULTILINE)
+jdk_path = ''
+
+# read and parse path.join(settings.root_dir, 'jdk.path') into jdk_path
+
+java_exe = os.path.join(jdk_path, 'java')
+javac_exe = os.path.join(jdk_path, 'javac')
 
 def extract_class_name(source):
     m = class_pat.search(source)
@@ -34,14 +42,14 @@ class Program:
 
     def _compile(self):
         try:
-            return Popen(["javac", "-Xlint", self._name + ".java"], cwd=self._dir, stdout=PIPE, stderr=STDOUT)
+            return Popen([javac_exe, "-Xlint", self._name + ".java"], cwd=self._dir, stdout=PIPE, stderr=STDOUT)
         except FileNotFoundError as e:
             print("Error:", e.strerror)
             return None
 
     def _execute(self):
         try:
-            return Popen(["java", self._name], cwd=self._dir, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            return Popen([java_exe, self._name], cwd=self._dir, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         except FileNotFoundError as e:
             print("Error:", e.strerror)
             return None
