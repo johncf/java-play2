@@ -1,3 +1,4 @@
 # Specify the path to java and javac here (JDK bin directory).
 # The first line that does not start with a hash sign will be used.
 # If a path is not specified, java and javac should be in path.
+# Relative paths are taken relative to the script/executable.

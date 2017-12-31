@@ -13,7 +13,7 @@ options = {
                      "asyncio.windows_utils",
                      "engineio.async_threading"],
         "excludes": ["gevent"],
-        "include_files": ["static"]
+        "include_files": ["static", "jdk.path", "LICENSE"]
     }
 }
 
