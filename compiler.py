@@ -7,12 +7,9 @@ import re
 import settings
 
 class_pat = re.compile("(public\s+)?class\s+(?P<name>\w+)", re.MULTILINE)
-jdk_path = ''
 
-# read and parse path.join(settings.root_dir, 'jdk.path') into jdk_path
-
-java_exe = os.path.join(jdk_path, 'java')
-javac_exe = os.path.join(jdk_path, 'javac')
+java_exe = os.path.join(settings.jdk_path, 'java')
+javac_exe = os.path.join(settings.jdk_path, 'javac')
 
 def extract_class_name(source):
     m = class_pat.search(source)
@@ -91,7 +88,7 @@ def read2Q(key, stream, notifq, limit_size=4096, limit_lines=256):
 def _main(program):
     proc = program._compile()
     if proc is None:
-        program._cbs.error("Backend did not find 'javac' in PATH.")
+        program._cbs.error("Backend could not find a Java compiler.")
         return
     outt = _spawn(read2Q, args=('stdout', proc.stdout, program._queue))
     outt.start()
